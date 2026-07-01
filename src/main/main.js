@@ -16,9 +16,9 @@ let isQuitting = false;
 function createMainWindow() {
     mainWindow = new BrowserWindow({
         width: 1000,
-        height: 700,
-        minWidth: 800,
-        minHeight: 600,
+        height: 720,
+        minWidth: 820,
+        minHeight: 640,
         frame: false, // Frameless window for ultra-modern look
         titleBarStyle: 'hidden',
         backgroundColor: '#04040f',
