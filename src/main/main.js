@@ -12,6 +12,20 @@ const timelapseGenerator = require('./timelapseGenerator');
 // Set AUMID so Windows shows the correct icon when pinning to taskbar
 app.setAppUserModelId('com.stillpillwill.screenie');
 
+// --- Single instance lock ---
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    app.quit();
+} else {
+    app.on('second-instance', () => {
+        // Someone tried to run a second instance — focus existing window
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
+    });
+}
+
 let mainWindow = null;
 let tray = null;
 let isQuitting = false;
@@ -130,6 +144,13 @@ app.whenReady().then(() => {
     createMainWindow();
     createTray();
 
+    // Check for updates on launch (only in production, not dev)
+    if (!process.argv.includes('--dev')) {
+        setTimeout(() => {
+            autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+        }, 3000);
+    }
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createMainWindow();
@@ -191,13 +212,6 @@ autoUpdater.on('update-downloaded', (info) => {
 
 autoUpdater.on('error', (err) => {
     console.error('Auto-updater error:', err.message);
-});
-
-// Check for updates 5 seconds after app ready
-app.whenReady().then(() => {
-    setTimeout(() => {
-        autoUpdater.checkForUpdatesAndNotify().catch(() => {});
-    }, 5000);
 });
 
 // IPC: install downloaded update
