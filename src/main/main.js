@@ -150,6 +150,71 @@ app.on('before-quit', () => {
     captureEngine.stop();
 });
 
+// --- Auto Updater ---
+const { autoUpdater } = require('electron-updater');
+
+// Silence verbose logging in production
+autoUpdater.logger = {
+    info: (msg) => {},
+    warn: (msg) => console.warn('[Updater]', msg),
+    error: (msg) => console.error('[Updater]', msg),
+    debug: () => {}
+};
+
+autoUpdater.on('update-available', (info) => {
+    console.log(`Update available: ${info.version}`);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-available', { version: info.version });
+    }
+});
+
+autoUpdater.on('update-not-available', () => {
+    console.log('No updates available.');
+});
+
+autoUpdater.on('download-progress', (progress) => {
+    if (mainWindow) {
+        mainWindow.webContents.send('update-progress', {
+            percent: Math.round(progress.percent),
+            transferred: progress.transferred,
+            total: progress.total
+        });
+    }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log(`Update downloaded: ${info.version}`);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-downloaded', { version: info.version });
+    }
+});
+
+autoUpdater.on('error', (err) => {
+    console.error('Auto-updater error:', err.message);
+});
+
+// Check for updates 5 seconds after app ready
+app.whenReady().then(() => {
+    setTimeout(() => {
+        autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+    }, 5000);
+});
+
+// IPC: install downloaded update
+ipcMain.on('update-install', () => {
+    autoUpdater.quitAndInstall();
+});
+
+// IPC: check for updates manually
+ipcMain.handle('update-check', async () => {
+    try {
+        const result = await autoUpdater.checkForUpdates();
+        return { available: !!result?.updateInfo, version: result?.updateInfo?.version };
+    } catch (e) {
+        return { available: false, error: e.message };
+    }
+});
+
 // --- IPC Handlers ---
 
 // Window Controls

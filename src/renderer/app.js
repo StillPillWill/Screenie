@@ -917,6 +917,28 @@ btnResetSettings.addEventListener('click', async () => {
 });
 
 
+// --- AUTO UPDATER ---
+ipcRenderer.on('update-available', (event, data) => {
+    showToast(`Update available: v${data.version}. Downloading...`, 'info');
+});
+
+ipcRenderer.on('update-downloaded', (event, data) => {
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-success';
+    toast.style.cursor = 'pointer';
+    toast.innerHTML = `Update v${data.version} ready. <strong>Click to install & restart</strong>`;
+    toast.addEventListener('click', () => {
+        ipcRenderer.send('update-install');
+    });
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(10px)';
+        toast.style.transition = 'all 0.25s';
+        setTimeout(() => toast.remove(), 300);
+    }, 15000); // longer timeout for install prompt
+});
+
 // --- INITIAL STARTUP ---
 async function init() {
     try {
