@@ -4,13 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-// Isolate each test run to its own temp dir
 let tmpDir;
 
 before(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'screenie-test-'));
     process.env.APPDATA = tmpDir;
-    // Clear module cache so settingsStore re-initializes with our temp dir
     delete require.cache[require.resolve('../src/main/settingsStore')];
 });
 
@@ -23,7 +21,6 @@ describe('settingsStore', () => {
     let ss;
 
     beforeEach(() => {
-        // Fresh require per test
         delete require.cache[require.resolve('../src/main/settingsStore')];
         ss = require('../src/main/settingsStore');
     });
@@ -60,7 +57,6 @@ describe('settingsStore', () => {
 
     it('persists to disk and reloads', () => {
         ss.set('interval', 99);
-        // Clear cache and re-require
         delete require.cache[require.resolve('../src/main/settingsStore')];
         const ss2 = require('../src/main/settingsStore');
         assert.equal(ss2.get('interval'), 99);
@@ -143,5 +139,47 @@ describe('settingsStore', () => {
         assert.equal(ss2.get('timelapseFps'), 24);
         assert.equal(ss2.get('timelapseCrf'), 30);
         assert.equal(ss2.get('timelapsePreset'), 'veryslow');
+    });
+
+    // --- NEW: filterMode and selectedDisplay ---
+
+    it('has filterMode default of allowlist', () => {
+        assert.equal(ss.get('filterMode'), 'allowlist');
+    });
+
+    it('sets and gets filterMode', () => {
+        ss.set('filterMode', 'blocklist');
+        assert.equal(ss.get('filterMode'), 'blocklist');
+    });
+
+    it('filterMode survives disk round-trip', () => {
+        ss.set('filterMode', 'blocklist');
+        delete require.cache[require.resolve('../src/main/settingsStore')];
+        const ss2 = require('../src/main/settingsStore');
+        assert.equal(ss2.get('filterMode'), 'blocklist');
+    });
+
+    it('has selectedDisplay default of primary', () => {
+        assert.equal(ss.get('selectedDisplay'), 'primary');
+    });
+
+    it('sets and gets selectedDisplay', () => {
+        ss.set('selectedDisplay', '192837465');
+        assert.equal(ss.get('selectedDisplay'), '192837465');
+    });
+
+    it('selectedDisplay survives disk round-trip', () => {
+        ss.set('selectedDisplay', '12345');
+        delete require.cache[require.resolve('../src/main/settingsStore')];
+        const ss2 = require('../src/main/settingsStore');
+        assert.equal(ss2.get('selectedDisplay'), '12345');
+    });
+
+    it('reset restores filterMode and selectedDisplay to defaults', () => {
+        ss.set('filterMode', 'blocklist');
+        ss.set('selectedDisplay', '999');
+        ss.reset();
+        assert.equal(ss.get('filterMode'), 'allowlist');
+        assert.equal(ss.get('selectedDisplay'), 'primary');
     });
 });
