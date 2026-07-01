@@ -11,6 +11,7 @@ A desktop screenshot timelapse application built with Electron. Automatically ca
 - **Automatic Screen Capture** — Captures screenshots at configurable intervals (5–120 seconds)
 - **Session Management** — Organizes captures into sessions with metadata tracking
 - **Timelapse Generation** — Creates MP4 videos from captured frames using FFmpeg
+- **Multi-Monitor Support** — Pick which display to capture, or target specific windows
 - **Window Detection** — Tracks which application is active during each capture
 - **App Filtering** — Optional allowlist to only capture specific applications
 - **Idle Detection** — Automatically pauses when you step away
@@ -18,17 +19,24 @@ A desktop screenshot timelapse application built with Electron. Automatically ca
 - **System Tray** — Minimize to tray for background operation
 - **Modern UI** — Clean, dark interface with real-time capture preview
 
-## 📋 Requirements
-
-- **OS:** Windows 10/11 (x64)
-- **Node.js:** v18.0.0 or higher
-- **npm:** v9.0.0 or higher
-
-> ⚠️ **Note:** Screenie uses Win32 APIs (user32.dll, kernel32.dll) for window detection and idle tracking. It is Windows-only.
-
 ## 🚀 Installation
 
-### Quick Start
+### Installer (recommended)
+
+Download `Screenie Setup X.X.X.exe` from [Releases](https://github.com/StillPillWill/Screenie/releases) and run it. The installer will:
+
+1. Let you choose an install location
+2. Create a **desktop shortcut**
+3. Create a **Start Menu shortcut**
+4. Launch Screenie when finished
+
+To uninstall, use **Settings → Apps → Screenie** or run the uninstaller from the Start Menu.
+
+### Portable
+
+Download the portable `.exe` from [Releases](https://github.com/StillPillWill/Screenie/releases). No installation needed — just double-click to run.
+
+### From Source
 
 ```bash
 # Clone the repository
@@ -40,17 +48,17 @@ npm install
 
 # Start the application
 npm start
+
+# Build the installer
+npm run build
 ```
 
-### Development
+## 📋 Requirements
 
-```bash
-# Run tests
-npm test
+- **OS:** Windows 10/11 (x64)
+- **Node.js:** v18.0.0 or higher (for building from source only)
 
-# Start with DevTools (edit main.js to set devTools: true)
-npm start
-```
+> ⚠️ Screenie uses Win32 APIs (user32.dll, kernel32.dll) for window detection and idle tracking. It is Windows-only.
 
 ## ⚙️ Configuration
 
@@ -66,6 +74,7 @@ Screenie stores its configuration in:
 | `interval` | 60s | Time between captures (5–120s) |
 | `idleThreshold` | 300s | Pause after this much inactivity |
 | `quality` | medium | Capture scale (low: 0.5×, medium: 0.75×, high: 1.0×) |
+| `selectedDisplay` | primary | Which monitor to capture in desktop mode |
 | `allowlistEnabled` | false | Only capture specific apps |
 | `allowlist` | [] | List of app executable names to capture |
 | `minimizeToTray` | true | Hide to tray instead of closing |
@@ -75,10 +84,22 @@ Screenie stores its configuration in:
 | `timelapseResolution` | 1.0 | Output scale (0.5, 0.75, 1.0) |
 | `timelapseSubtitles` | true | Burn app/title/timestamp onto frames |
 
+## 🏗️ Building
+
+```bash
+# Build NSIS installer (.exe with wizard)
+npm run build
+
+# Build portable executable (no install needed)
+npm run build:portable
+```
+
+Output appears in `dist/`.
+
 ## 📁 Project Structure
 
 ```
-duck/
+Screenie/
 ├── src/
 │   ├── main/                    # Electron main process
 │   │   ├── main.js              # App entry, window management, IPC
@@ -92,26 +113,19 @@ duck/
 │       ├── index.html           # UI markup
 │       ├── app.js               # Renderer logic & IPC
 │       ├── styles/main.css      # Styles
-│       └── assets/icon.png      # App icon
-├── test/                        # Test suite
-│   ├── settingsStore.test.js    # Settings CRUD tests
-│   ├── sessionManager.test.js   # Session lifecycle tests
-│   ├── captureEngine.test.js    # State machine tests
-│   ├── timelapseGenerator.test.js # Time formatting tests
-│   └── renderer.test.js         # UI logic tests
+│       └── assets/              # App icon (PNG + ICO)
+├── test/                        # Test suite (80+ tests)
 ├── package.json
 └── README.md
 ```
 
 ## 🧪 Testing
 
-Screenie uses Node.js built-in test runner (`node:test`):
-
 ```bash
 npm test
 ```
 
-This runs 80+ tests covering:
+Uses Node.js built-in test runner (`node:test`). Covers:
 - Settings store (CRUD, persistence, defaults)
 - Session manager (create, resume, delete, frame tracking)
 - Capture engine (state machine transitions)
@@ -123,6 +137,7 @@ This runs 80+ tests covering:
 | Package | Purpose |
 |---------|---------|
 | `electron` | Desktop app framework |
+| `electron-builder` | Installer/packaging |
 | `koffi` | Win32 FFI for window/activity detection |
 | `fluent-ffmpeg` | FFmpeg wrapper for timelapse generation |
 | `ffmpeg-static` | Prebuilt FFmpeg binary |
@@ -144,3 +159,4 @@ Apache 2.0. See [LICENSE](LICENSE) for details.
 - Built with [Electron](https://www.electronjs.org/)
 - Video encoding powered by [FFmpeg](https://ffmpeg.org/)
 - Window detection via [koffi](https://koffi.dev/) (Win32 FFI)
+- Installer built with [electron-builder](https://www.electron.build/)
