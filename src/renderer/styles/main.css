@@ -432,6 +432,55 @@ body {
     padding: 12px 14px;
 }
 
+/* ── Filter Mode Indicator ── */
+
+.filter-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+}
+
+.filter-indicator-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+}
+
+.filter-indicator-icon.mode-allow {
+    background: var(--green-dim);
+    color: var(--green);
+}
+
+.filter-indicator-icon.mode-block {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.filter-indicator-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.filter-indicator-mode {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-1);
+}
+
+.filter-indicator-desc {
+    font-size: 10.5px;
+    color: var(--text-4);
+}
+
 .aw-label {
     display: flex;
     align-items: center;

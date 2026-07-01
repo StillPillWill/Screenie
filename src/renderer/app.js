@@ -40,6 +40,12 @@ const statInterval = document.getElementById('stat-interval');
 const currentAppBadge = document.getElementById('current-app-badge');
 const currentWindowTitle = document.getElementById('current-window-title');
 
+// Filter mode indicator
+const filterIndicator = document.getElementById('filter-indicator');
+const filterIndicatorIcon = document.getElementById('filter-indicator-icon');
+const filterIndicatorMode = document.getElementById('filter-indicator-mode');
+const filterIndicatorDesc = document.getElementById('filter-indicator-desc');
+
 // Dashboard — Preview
 const previewImage = document.getElementById('preview-image');
 const previewEmpty = document.getElementById('preview-empty');
@@ -763,6 +769,8 @@ settingAllowlistEnabled.addEventListener('change', async (e) => {
     allowlistManager.style.display = enabled ? 'block' : 'none';
     filterModeRow.style.display = enabled ? 'block' : 'none';
     updateFilterHint();
+    const mode = btnFilterAllow.classList.contains('active') ? 'allowlist' : 'blocklist';
+    updateFilterIndicator(mode);
     showToast(`Application filtering ${enabled ? 'enabled' : 'disabled'}`, 'info');
 });
 
@@ -771,6 +779,7 @@ function updateFilterUI(mode) {
     btnFilterAllow.classList.toggle('active', mode === 'allowlist');
     btnFilterBlock.classList.toggle('active', mode === 'blocklist');
     updateFilterHint();
+    updateFilterIndicator(mode);
 }
 
 function updateFilterHint() {
@@ -778,6 +787,18 @@ function updateFilterHint() {
     filterHint.textContent = mode === 'allowlist'
         ? 'Only capture when working in approved apps.'
         : 'Capture everything except the listed apps.';
+}
+
+function updateFilterIndicator(mode) {
+    const enabled = settingAllowlistEnabled.checked;
+    filterIndicator.style.display = enabled ? 'flex' : 'none';
+    if (!enabled) return;
+
+    filterIndicatorIcon.className = 'filter-indicator-icon ' + (mode === 'blocklist' ? 'mode-block' : 'mode-allow');
+    filterIndicatorMode.textContent = mode === 'blocklist' ? 'Blocklist' : 'Allowlist';
+    filterIndicatorDesc.textContent = mode === 'blocklist'
+        ? 'Capturing everything except listed apps'
+        : 'Only capturing approved apps';
 }
 
 btnFilterAllow.addEventListener('click', async () => {
