@@ -21,6 +21,7 @@ function logDebug(msg) {
 let captureIntervalId = null;
 let isRecording = false;
 let isPaused = false;
+let isIdlePaused = false; // true when auto-paused due to inactivity
 let lastCaptureTime = 0;
 let lastStatus = 'Idle';
 let countdown = 0;
@@ -257,10 +258,25 @@ async function tick() {
     
     const active = activityDetector.isActive(idleThreshold * 1000);
     if (!active) {
-        logDebug('Tick skipped: User is idle.');
-        lastStatus = 'Idle - No activity';
-        emitStatus();
+        // Auto-pause due to inactivity
+        if (!isIdlePaused) {
+            isIdlePaused = true;
+            isPaused = true;
+            lastStatus = 'Idle - Auto-paused';
+            logDebug(`User idle for ${idleThreshold}s. Auto-pausing recording.`);
+            emitStatus();
+        }
         return;
+    }
+
+    // Auto-resume when user becomes active again
+    if (isIdlePaused) {
+        isIdlePaused = false;
+        isPaused = false;
+        lastCaptureTime = Date.now(); // reset to avoid auto-segment
+        lastStatus = 'Recording';
+        logDebug('User active again. Auto-resuming recording.');
+        resetCountdown(interval);
     }
 
     const now = Date.now();
@@ -322,6 +338,7 @@ function start(resumeSessionId = null) {
     if (isRecording) return;
     isRecording = true;
     isPaused = false;
+    isIdlePaused = false;
     lastStatus = 'Recording';
     lastCaptureTime = Date.now();
     
@@ -343,6 +360,7 @@ function start(resumeSessionId = null) {
 function pause() {
     if (!isRecording || isPaused) return;
     isPaused = true;
+    isIdlePaused = false; // manual pause, not idle
     lastStatus = 'Paused';
     emitStatus();
 }
@@ -363,6 +381,7 @@ function stop() {
     if (!isRecording) return;
     isRecording = false;
     isPaused = false;
+    isIdlePaused = false;
     lastStatus = 'Stopped';
     countdown = 0;
     if (captureIntervalId) { clearInterval(captureIntervalId); captureIntervalId = null; }
